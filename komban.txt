@@ -1,1 +1,435 @@
-hello bai
+Laboratory 1
+Question:
+Design and implement a basic TensorFlow program by creating a computation graph, executing it in a session, and managing node lifecycles and graph structures.
+
+import tensorflow as tf 
+
+# Define a simple computation graph 
+@tf.function  # Converts Python function into a TensorFlow graph 
+def my_graph(x, y): 
+    return x * y + 5  # Simple equation: (x * y) + 5 
+
+# Create TensorFlow constants (nodes) 
+x = tf.constant(3.0) 
+y = tf.constant(4.0) 
+
+# Run the computation graph 
+result = my_graph(x, y) 
+
+# Print the result 
+print("Result of (x * y) + 5:", result.numpy())  # Convert tensor to a NumPy value 
+
+Laboratory 2
+Question:
+Develop and apply gradient descent, feed data to the training algorithm, save and restore models, and visualize training progress using TensorBoard with proper name scopes and variable sharing.
+
+import tensorflow as tf 
+import numpy as np 
+import matplotlib.pyplot as plt 
+
+# Generate data (y = 3x + 7 with noise) 
+X = np.linspace(-1, 1, 100).reshape(-1, 1) 
+y = 3 * X + 7 + np.random.randn(100, 1) * 0.2 
+
+# Build a simple model 
+model = tf.keras.Sequential([tf.keras.layers.Dense(1)]) 
+
+# Compile the model with Gradient Descent 
+model.compile(optimizer='sgd', loss='mse') 
+
+# Train the model 
+history = model.fit(X, y, epochs=100, verbose=0) 
+
+# Save & Load the model (NEW FORMAT) 
+model.save("model.keras")   
+loaded_model = tf.keras.models.load_model("model.keras")   
+
+# Plot training loss 
+plt.plot(history.history['loss']) 
+plt.xlabel("Epochs") 
+plt.ylabel("Loss") 
+plt.title("Training Loss Curve") 
+plt.show()
+
+
+Laboratory 3
+Question:
+Train and evaluate a Multilayer Perceptron (MLP) using TensorFlow’s high-level API, implement a Deep Neural Network (DNN) using low-level TensorFlow, and fine-tune key hyperparameters.
+
+import tensorflow as tf 
+from tensorflow import keras 
+import numpy as np 
+
+# Generate dummy data 
+X_train = np.random.rand(100, 10) 
+y_train = (np.sum(X_train, axis=1) > 5).astype(int) 
+X_test = np.random.rand(20, 10) 
+y_test = (np.sum(X_test, axis=1) > 5).astype(int) 
+
+# Build a simple MLP model 
+def build_model(): 
+    model = keras.Sequential([         
+        keras.layers.Dense(16, activation='relu', input_shape=(10,)),         
+        keras.layers.Dense(8, activation='relu'),         
+        keras.layers.Dense(1, activation='sigmoid') 
+    ]) 
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])     
+    return model 
+
+# Train the model 
+model = build_model() 
+model.fit(X_train, y_train, epochs=10, batch_size=5, validation_data=(X_test, y_test))
+
+
+Laboratory 4
+Question:
+Apply and demonstrate regularization techniques such as L1, L2, and Dropout to avoid overfitting, and follow practical guidelines for building robust models.
+
+
+import tensorflow as tf 
+from tensorflow import keras 
+
+# Load MNIST dataset 
+(X_train, y_train), (X_test, y_test) = keras.datasets.mnist.load_data() 
+
+# Normalize the data (0 to 1) 
+X_train, X_test = X_train / 255.0, X_test / 255.0 
+
+# Flatten images (28x28 → 784) 
+X_train = X_train.reshape(-1, 784) 
+X_test = X_test.reshape(-1, 784) 
+
+# Build a simple neural network with regularization 
+model = keras.Sequential([     
+    keras.layers.Dense(128, activation='relu', kernel_regularizer=keras.regularizers.l2(0.01)),  # L2 Regularization     
+    keras.layers.Dropout(0.5),  # Dropout     
+    keras.layers.Dense(10, activation='softmax')  # Output layer (10 classes) 
+]) 
+
+# Compile model 
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy']) 
+
+# Train model 
+model.fit(X_train, y_train, epochs=5, validation_data=(X_test, y_test))
+
+
+Laboratory 5
+Question:
+Design and build Convolutional Neural Networks (CNNs) using convolutional layers, pooling layers, and explore different CNN architectures.
+
+import tensorflow as tf 
+from tensorflow.keras import layers, models 
+
+# Load MNIST dataset 
+(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data() 
+
+# Normalize and reshape data 
+x_train, x_test = x_train / 255.0, x_test / 255.0 
+x_train = x_train[..., None] 
+x_test = x_test[..., None] 
+
+# Define a simple CNN model 
+model = models.Sequential([     
+    layers.Conv2D(16, (3,3), activation='relu', input_shape=(28,28,1)),     
+    layers.MaxPooling2D((2,2)),     
+    layers.Flatten(),     
+    layers.Dense(10, activation='softmax') 
+]) 
+
+# Compile and train model 
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy']) 
+model.fit(x_train, y_train, epochs=3, validation_data=(x_test, y_test)) 
+
+# Evaluate model 
+test_loss, test_acc = model.evaluate(x_test, y_test) 
+print(f"Test accuracy: {test_acc:.4f}")
+
+
+Laboratory 6
+Question:
+Construct and train Recurrent Neural Networks (RNNs) using LSTM and GRU cells, and apply them to simple Natural Language Processing (NLP) tasks.
+
+import tensorflow as tf 
+from tensorflow.keras.preprocessing.text import Tokenizer 
+from tensorflow.keras.preprocessing.sequence import pad_sequences 
+import numpy as np 
+
+# Small dataset 
+text = ["I love NLP", "LSTM is great", "GRU is simple"] 
+
+# Tokenization 
+tokenizer = Tokenizer() 
+tokenizer.fit_on_texts(text) 
+word_count = len(tokenizer.word_index) + 1 
+
+# Convert text to sequences 
+seqs = tokenizer.texts_to_sequences(text) 
+X = pad_sequences([s[:-1] for s in seqs], padding='pre') 
+y = tf.keras.utils.to_categorical([s[-1] for s in seqs], num_classes=word_count) 
+
+# Simple LSTM model 
+lstm = tf.keras.Sequential([     
+    tf.keras.layers.Embedding(word_count, 10, input_length=X.shape[1]),     
+    tf.keras.layers.LSTM(20),     
+    tf.keras.layers.Dense(word_count, activation='softmax') 
+]) 
+
+lstm.compile(loss='categorical_crossentropy', optimizer='adam') 
+lstm.fit(X, y, epochs=50, verbose=0) 
+
+# Simple GRU model 
+gru = tf.keras.Sequential([     
+    tf.keras.layers.Embedding(word_count, 10, input_length=X.shape[1]),     
+    tf.keras.layers.GRU(20),     
+    tf.keras.layers.Dense(word_count, activation='softmax') 
+]) 
+
+gru.compile(loss='categorical_crossentropy', optimizer='adam') 
+gru.fit(X, y, epochs=50, verbose=0) 
+
+# Safe prediction function 
+def predict(model, text): 
+    seq = tokenizer.texts_to_sequences([text])     
+    if not seq[0]: 
+        return "Unknown word"     
+    seq = pad_sequences(seq, maxlen=X.shape[1], padding='pre')     
+    pred_index = np.argmax(model.predict_on_batch(np.array(seq)))     
+    return next((word for word, index in tokenizer.word_index.items() if index == pred_index), "?") 
+
+# Test prediction 
+print("LSTM Prediction:", predict(lstm, "LSTM is")) 
+print("GRU Prediction:", predict(gru, "GRU is"))
+
+
+Laboratory 7
+Question:
+Perform and analyze efficient data representation using Principal Component Analysis (PCA) and undercomplete autoencoders.
+
+!pip install torch torchvision 
+import torch 
+import torch.nn as nn 
+import torch.optim as optim 
+from torchvision import datasets, transforms 
+
+# Define Autoencoder class 
+class Autoencoder(nn.Module):     
+    def __init__(self, input_dim, latent_dim): 
+        super(Autoencoder, self).__init__()         
+        self.encoder = nn.Linear(input_dim, latent_dim)         
+        self.decoder = nn.Linear(latent_dim, input_dim)     
+
+    def forward(self, x): 
+        return self.decoder(self.encoder(x)) 
+
+# Load dataset 
+transform = transforms.Compose([transforms.ToTensor(), transforms.Lambda(lambda x: x.view(-1))]) 
+dataloader = torch.utils.data.DataLoader(
+    datasets.MNIST("./data", train=True, download=True, transform=transform), 
+    batch_size=64, shuffle=True
+) 
+
+# Initialize model, loss, optimizer 
+model = Autoencoder(28*28, 10) 
+criterion = nn.MSELoss() 
+optimizer = optim.Adam(model.parameters(), lr=0.01) 
+
+# Train model 
+for epoch in range(5):     
+    for images, _ in dataloader:         
+        optimizer.zero_grad()         
+        loss = criterion(model(images), images)         
+        loss.backward()         
+        optimizer.step()     
+    print(f"Epoch {epoch+1}, Loss: {loss.item():.4f}")
+
+
+Laboratory 8
+Question:
+Develop and compare advanced autoencoders such as stacked, denoising, sparse, and variational autoencoders for feature learning.
+
+
+import numpy as np 
+import tensorflow as tf 
+from tensorflow.keras.models import Model, Sequential 
+from tensorflow.keras.layers import Input, Dense, Lambda 
+from tensorflow.keras import regularizers 
+from tensorflow.keras.datasets import mnist 
+
+# Load and preprocess MNIST dataset 
+(x_train, _), _ = mnist.load_data() 
+x_train = x_train.astype("float32") / 255. 
+x_train = x_train.reshape((len(x_train), 784))  # Flatten images
+
+# Function to train any autoencoder model 
+def train_autoencoder(model, input_data, target_data, name): 
+    print(f"\nTraining {name}...") 
+    model.compile(optimizer='adam', loss='mse') 
+    model.fit(input_data, target_data, epochs=3, batch_size=256, verbose=1) 
+    print(f"{name} training complete.")
+
+# 1. Stacked Autoencoder 
+stacked_ae = Sequential([ 
+    Dense(128, activation='relu', input_shape=(784,)), 
+    Dense(64, activation='relu'), 
+    Dense(128, activation='relu'), 
+    Dense(784, activation='sigmoid') 
+]) 
+train_autoencoder(stacked_ae, x_train, x_train, "Stacked Autoencoder")
+
+# 2. Denoising Autoencoder 
+noise_factor = 0.5 
+x_train_noisy = x_train + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=x_train.shape) 
+x_train_noisy = np.clip(x_train_noisy, 0., 1.) 
+denoising_ae = Sequential([ 
+    Dense(128, activation='relu', input_shape=(784,)), 
+    Dense(64, activation='relu'), 
+    Dense(128, activation='relu'), 
+    Dense(784, activation='sigmoid') 
+]) 
+train_autoencoder(denoising_ae, x_train_noisy, x_train, "Denoising Autoencoder")
+
+# 3. Sparse Autoencoder 
+sparse_ae = Sequential([     
+    Dense(128, activation='relu', activity_regularizer=regularizers.l1(1e-5), input_shape=(784,)), 
+    Dense(64, activation='relu'), 
+    Dense(128, activation='relu'), 
+    Dense(784, activation='sigmoid') 
+]) 
+train_autoencoder(sparse_ae, x_train, x_train, "Sparse Autoencoder")
+
+# 4. Variational Autoencoder (VAE) 
+class VAE(Model): 
+    def __init__(self, encoder, decoder, **kwargs): 
+        super(VAE, self).__init__(**kwargs) 
+        self.encoder = encoder 
+        self.decoder = decoder 
+        self.total_loss_tracker = tf.keras.metrics.Mean(name="total_loss") 
+        self.reconstruction_loss_tracker = tf.keras.metrics.Mean(name="reconstruction_loss") 
+        self.kl_loss_tracker = tf.keras.metrics.Mean(name="kl_loss") 
+
+    @property     
+    def metrics(self): 
+        return [self.total_loss_tracker, self.reconstruction_loss_tracker, self.kl_loss_tracker]
+
+    def train_step(self, data): 
+        if isinstance(data, tuple): 
+            data = data[0] 
+        with tf.GradientTape() as tape: 
+            z_mean, z_log_var, z = self.encoder(data) 
+            reconstruction = self.decoder(z) 
+            reconstruction_loss = tf.reduce_mean(tf.keras.losses.binary_crossentropy(data, reconstruction)) 
+            kl_loss = -0.5 * tf.reduce_mean(1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var)) 
+            total_loss = reconstruction_loss + kl_loss 
+        grads = tape.gradient(total_loss, self.trainable_weights) 
+        self.optimizer.apply_gradients(zip(grads, self.trainable_weights)) 
+        self.total_loss_tracker.update_state(total_loss) 
+        self.reconstruction_loss_tracker.update_state(reconstruction_loss) 
+        self.kl_loss_tracker.update_state(kl_loss) 
+        return { 
+            "loss": self.total_loss_tracker.result(), 
+            "reconstruction_loss": self.reconstruction_loss_tracker.result(), 
+            "kl_loss": self.kl_loss_tracker.result(), 
+        }
+
+# VAE Encoder
+inputs = Input(shape=(784,), name='encoder_input') 
+x = Dense(128, activation='relu')(inputs) 
+z_mean = Dense(2, name='z_mean')(x) 
+z_log_var = Dense(2, name='z_log_var')(x) 
+
+def sample_z(args): 
+    z_mean, z_log_var = args 
+    epsilon = tf.random.normal(shape=(tf.shape(z_mean)[0], 2)) 
+    return z_mean + tf.exp(0.5 * z_log_var) * epsilon 
+
+z = Lambda(sample_z, output_shape=(2,), name='z_sampling')([z_mean, z_log_var]) 
+encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
+
+# VAE Decoder
+decoder_input = Input(shape=(2,), name='decoder_input') 
+x = Dense(128, activation='relu')(decoder_input) 
+outputs = Dense(784, activation='sigmoid', name='decoder_output')(x) 
+decoder = Model(decoder_input, outputs, name='decoder')
+
+# Build and Train VAE 
+vae = VAE(encoder, decoder) 
+vae.compile(optimizer='adam') 
+print("\nTraining Variational Autoencoder...") 
+vae.fit(x_train, epochs=3, batch_size=256) 
+print("Variational Autoencoder training complete.")
+
+
+Laboratory 9
+Question:
+Design and train a reinforcement learning agent using policy search methods to optimize rewards.
+
+import gymnasium as gym 
+import numpy as np 
+import tensorflow as tf 
+
+# Create the environment 
+env = gym.make("CartPole-v1") 
+
+# Define a simple neural network model for the policy 
+model = tf.keras.Sequential([     
+    tf.keras.layers.Dense(16, activation='relu', input_shape=(env.observation_space.shape[0],)),     
+    tf.keras.layers.Dense(env.action_space.n, activation='softmax') 
+]) 
+
+# Define the optimizer for updating the policy 
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+
+# Function to choose an action based on the current policy 
+def choose_action(state): 
+    state = np.expand_dims(state, axis=0) 
+    probs = model(state).numpy()[0] 
+    return np.random.choice(env.action_space.n, p=probs) 
+
+# Train the agent using the REINFORCE algorithm 
+print("Starting REINFORCE training for CartPole-v1...") 
+for episode in range(200): 
+    state, _ = env.reset()  
+    done = False            
+    states, actions, rewards = [], [], []  
+
+    while not done: 
+        action = choose_action(state)  
+        next_state, reward, done, truncated, _ = env.step(action) 
+        states.append(state) 
+        actions.append(action) 
+        rewards.append(reward) 
+        state = next_state  
+        if truncated: 
+            done = True 
+
+    G = 0     
+    returns = [] 
+    for r in reversed(rewards): 
+        G = r + 0.99 * G  
+        returns.insert(0, G) 
+    returns = np.array(returns) 
+    returns = (returns - np.mean(returns)) / (np.std(returns) + 1e-8) 
+
+    with tf.GradientTape() as tape: 
+        loss = 0         
+        for i in range(len(states)): 
+            state_input = np.expand_dims(states[i], axis=0) 
+            probs = model(state_input) 
+            log_prob = tf.math.log(probs[0, actions[i]] + 1e-8) 
+            loss += -log_prob * returns[i] 
+
+    grads = tape.gradient(loss, model.trainable_variables)     
+    optimizer.apply_gradients(zip(grads, model.trainable_variables)) 
+
+    if (episode + 1) % 20 == 0: 
+        print(f"Episode {episode+1}: Total Reward = {sum(rewards)}") 
+
+env.close() 
+print("\nREINFORCE training finished.")
+
+
+Laboratory 10
+Question:
+Implement and experiment with neural network-based policies in simulated environments using OpenAI Gym.
+
+
