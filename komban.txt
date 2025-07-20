@@ -19,6 +19,9 @@ result = my_graph(x, y)
 # Print the result 
 print("Result of (x * y) + 5:", result.numpy())  # Convert tensor to a NumPy value 
 
+
+--------------------------------------------------------------------------------------------------------------------
+
 Laboratory 2
 Question:
 Develop and apply gradient descent, feed data to the training algorithm, save and restore models, and visualize training progress using TensorBoard with proper name scopes and variable sharing.
@@ -52,6 +55,11 @@ plt.title("Training Loss Curve")
 plt.show()
 
 
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+
 Laboratory 3
 Question:
 Train and evaluate a Multilayer Perceptron (MLP) using TensorFlow’s high-level API, implement a Deep Neural Network (DNN) using low-level TensorFlow, and fine-tune key hyperparameters.
@@ -79,6 +87,11 @@ def build_model():
 # Train the model 
 model = build_model() 
 model.fit(X_train, y_train, epochs=10, batch_size=5, validation_data=(X_test, y_test))
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------
 
 
 Laboratory 4
@@ -113,6 +126,12 @@ model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=
 model.fit(X_train, y_train, epochs=5, validation_data=(X_test, y_test))
 
 
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+
+
 Laboratory 5
 Question:
 Design and build Convolutional Neural Networks (CNNs) using convolutional layers, pooling layers, and explore different CNN architectures.
@@ -143,6 +162,11 @@ model.fit(x_train, y_train, epochs=3, validation_data=(x_test, y_test))
 # Evaluate model 
 test_loss, test_acc = model.evaluate(x_test, y_test) 
 print(f"Test accuracy: {test_acc:.4f}")
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------
 
 
 Laboratory 6
@@ -201,6 +225,12 @@ print("LSTM Prediction:", predict(lstm, "LSTM is"))
 print("GRU Prediction:", predict(gru, "GRU is"))
 
 
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+
+
 Laboratory 7
 Question:
 Perform and analyze efficient data representation using Principal Component Analysis (PCA) and undercomplete autoencoders.
@@ -241,6 +271,13 @@ for epoch in range(5):
         loss.backward()         
         optimizer.step()     
     print(f"Epoch {epoch+1}, Loss: {loss.item():.4f}")
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+
 
 
 Laboratory 8
@@ -359,6 +396,11 @@ vae.fit(x_train, epochs=3, batch_size=256)
 print("Variational Autoencoder training complete.")
 
 
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+
 Laboratory 9
 Question:
 Design and train a reinforcement learning agent using policy search methods to optimize rewards.
@@ -428,8 +470,54 @@ env.close()
 print("\nREINFORCE training finished.")
 
 
+
+--------------------------------------------------------------------------------------------------------------------
+
+
 Laboratory 10
 Question:
 Implement and experiment with neural network-based policies in simulated environments using OpenAI Gym.
+
+import gymnasium as gym
+import numpy as np
+import tensorflow as tf
+
+env = gym.make("CartPole-v1", render_mode=None)
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(8, activation='relu', input_shape=(4,)),
+    tf.keras.layers.Dense(2, activation='softmax')])
+
+def choose_action(state):
+    state = np.expand_dims(state, axis=0)
+    probs = model(state).numpy()[0]
+    return np.random.choice(2, p=probs)
+
+state, _ = env.reset(seed=42)
+total_reward = 0
+done = False
+while not done:
+    action = choose_action(state)
+    next_state, reward, terminated, truncated, _ = env.step(action)
+    done = terminated or truncated
+    state = next_state
+    total_reward += reward
+
+print("Total reward collected by untrained model:", total_reward)
+env.close()
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+
+
+packages :
+ ! pip install tensorflow
+numpy
+matplotlib
+torch
+torchvision
+gymnasium
 
 
